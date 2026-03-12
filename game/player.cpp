@@ -25,6 +25,7 @@
 #include "player.h"
 #include "objects.h"
 #include "game.h"
+#include "particles.h"
 
 
 /* ----------------------------------------------------------------- */
@@ -353,6 +354,11 @@ Player::Explode(void)
 	Set_TTL(myblit->numFrames*phasetime);
 	ExplodeSound();
 	SetSteamTimelineEvent(STEAM_TIMELINE_EVENT_DEATH);
+
+	/* Big particle explosion for player death */
+	if (gParticles) {
+		gParticles->SpawnExplosion(x, y, 40, true);
+	}
 	return(0);
 }
 
@@ -629,6 +635,9 @@ Player::BlitSprite(void)
 	/* Draw the new shots */
 	OBJ_LOOP(i, numshots) {
 		RenderSprite(gPlayerShot, shots[i]->x, shots[i]->y, SHOT_SIZE, SHOT_SIZE);
+		if (gParticles) {
+			gParticles->SpawnBulletTrail(shots[i]->x, shots[i]->y);
+		}
 	}
 	/* Draw the shield, if necessary */
 	if ( ! gPaused && (AutoShield || (ShieldOn && (ShieldLevel > 0))) ) {
@@ -641,6 +650,9 @@ Player::BlitSprite(void)
 		thrust_x = x + gThrustOrigins[phase].h;
 		thrust_y = y + gThrustOrigins[phase].v;
 		RenderSprite(ThrustBlit->sprite[phase], thrust_x, thrust_y, THRUST_SIZE, THRUST_SIZE);
+		if (gParticles) {
+			gParticles->SpawnThrust(thrust_x, thrust_y, phase);
+		}
 		if ( ThrustBlit == gThrust1 )
 			ThrustBlit = gThrust2;
 		else

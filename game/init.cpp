@@ -28,6 +28,8 @@
 #include "init.h"
 #include "game.h"
 #include "player.h"
+#include "particles.h"
+#include "starfield.h"
 #include "colortable.h"
 #include "fastrand.h"
 #include "MaelstromUI.h"
@@ -711,6 +713,8 @@ static void BuildVelocityTable(void)
 */
 void CleanUp(void)
 {
+	FreeStarfield();
+	FreeParticles();
 	FreeScores();
 	SaveControls();
 	QuitPlayerControls();
@@ -870,6 +874,12 @@ int DoInitializations(Uint32 window_flags)
 	/* -- Initialize the sprite manager - after we load blits and shots! */
 	if ( InitSprites() < 0 )
 		return(-1);
+
+	/* -- Initialize the particle effects system */
+	InitParticles();
+
+	/* -- Initialize the parallax starfield */
+	InitStarfield();
 
 	ui->DeletePanel(PANEL_LOADING);
 

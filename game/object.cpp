@@ -22,6 +22,7 @@
 #include "Maelstrom_Globals.h"
 #include "object.h"
 #include "game.h"
+#include "particles.h"
 
 
 /* The screen object class */
@@ -77,6 +78,11 @@ Object::Explode(void)
 	Set_Blit(gExplosion);
 	Set_TTL(myblit->numFrames*phasetime);
 	ExplodeSound();
+
+	/* Spawn particle explosion effect */
+	if (gParticles) {
+		gParticles->SpawnExplosion(x, y, 30, false);
+	}
 	return(0);
 }
 

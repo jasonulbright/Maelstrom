@@ -66,6 +66,8 @@ set(MAELSTROM_SOURCES
 	game/object.h
 	game/objects.cpp
 	game/objects.h
+	game/particles.cpp
+	game/particles.h
 	game/packet.h
 	game/player.cpp
 	game/player.h
@@ -77,6 +79,8 @@ set(MAELSTROM_SOURCES
 	game/scores.cpp
 	game/scores.h
 	game/shinobi.h
+	game/starfield.cpp
+	game/starfield.h
 	game/steam.cpp
 	game/steam.h
 

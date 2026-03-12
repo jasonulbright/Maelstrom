@@ -26,6 +26,8 @@
 #include "netplay.h"
 #include "make.h"
 #include "game.h"
+#include "particles.h"
+#include "starfield.h"
 #include "../screenlib/UIElement.h"
 
 // Global variables set in this file...
@@ -418,6 +420,12 @@ GamePanelDelegate::OnTick()
 	if ( gFreezeTime )
 		--gFreezeTime;
 
+	/* Update particle effects */
+	if (gParticles)
+		gParticles->Update();
+	if (gStarfield)
+		gStarfield->Update();
+
 	DoHousekeeping();
 }
 
@@ -437,12 +445,17 @@ GamePanelDelegate::OnDraw(DRAWLEVEL drawLevel)
 		return;
 	}
 
-	/* -- Draw the star field */
-	for ( i=0; i<MAX_STARS; ++i ) {
-		int x = (gTheStars[i]->xCoord << SPRITE_PRECISION);
-		int y = (gTheStars[i]->yCoord << SPRITE_PRECISION);
-		GetRenderCoordinates(x, y);
-		screen->DrawPoint(x, y, gTheStars[i]->color);
+	/* -- Draw the parallax star field */
+	if (gStarfield) {
+		gStarfield->Draw(screen);
+	} else {
+		/* Fallback to original flat starfield */
+		for ( i=0; i<MAX_STARS; ++i ) {
+			int x = (gTheStars[i]->xCoord << SPRITE_PRECISION);
+			int y = (gTheStars[i]->yCoord << SPRITE_PRECISION);
+			GetRenderCoordinates(x, y);
+			screen->DrawPoint(x, y, gTheStars[i]->color);
+		}
 	}
 
 	/* -- Blit all the sprites */
@@ -453,6 +466,11 @@ GamePanelDelegate::OnDraw(DRAWLEVEL drawLevel)
 			continue;
 		}
 		gPlayers[i]->BlitSprite();
+	}
+
+	/* -- Draw particles on top of sprites */
+	if (gParticles) {
+		gParticles->Draw(screen);
 	}
 }
 
@@ -1026,6 +1044,11 @@ GamePanelDelegate::NextWave()
 	gNextBoom = gBoomDelay;
 	gBoomPhase = 0;
 	gWhenDone = 0;
+
+	/* -- Clear leftover particles from previous wave */
+	if (gParticles) {
+		gParticles->Clear();
+	}
 
 	/* -- Create the ship's sprite */
 	OBJ_LOOP(i, MAX_PLAYERS) {

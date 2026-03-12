@@ -20,6 +20,8 @@
 */
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
 
 #include "../utils/files.h"
 #include "SDL_FrameBuf.h"
@@ -93,11 +95,38 @@ FrameBuf::Init(int width, int height, Uint32 window_flags, SDL_Surface *icon)
 
 	SDL_SetRenderTarget(m_renderer, m_target);
 
+	/* Create bloom render targets at half and quarter resolution */
+	m_bloomHalf = SDL_CreateTexture(m_renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_TARGET, width / 2, height / 2);
+	m_bloomQuarter = SDL_CreateTexture(m_renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_TARGET, width / 4, height / 4);
+	if (m_bloomHalf) {
+		SDL_SetTextureBlendMode(m_bloomHalf, SDL_BLENDMODE_BLEND);
+		SDL_SetTextureScaleMode(m_bloomHalf, SDL_SCALEMODE_LINEAR);
+	}
+	if (m_bloomQuarter) {
+		SDL_SetTextureBlendMode(m_bloomQuarter, SDL_BLENDMODE_BLEND);
+		SDL_SetTextureScaleMode(m_bloomQuarter, SDL_SCALEMODE_LINEAR);
+	}
+
+	/* Create scanline and vignette overlay textures */
+	CreatePostProcessTextures();
+
 	return(0);
 }
 
 FrameBuf::~FrameBuf()
 {
+	if (m_vignetteTex) {
+		SDL_DestroyTexture(m_vignetteTex);
+	}
+	if (m_scanlineTex) {
+		SDL_DestroyTexture(m_scanlineTex);
+	}
+	if (m_bloomQuarter) {
+		SDL_DestroyTexture(m_bloomQuarter);
+	}
+	if (m_bloomHalf) {
+		SDL_DestroyTexture(m_bloomHalf);
+	}
 	if (m_target) {
 		SDL_DestroyTexture(m_target);
 	}
@@ -215,6 +244,79 @@ FrameBuf::StretchBlit(const SDL_Rect *_dstrect, SDL_Texture *src, const SDL_Rect
 }
 
 void
+FrameBuf::CreatePostProcessTextures()
+{
+	/* CRT scanline overlay: alternating transparent / semi-dark rows */
+	{
+		int w = m_width;
+		int h = m_height;
+		Uint32 *pixels = (Uint32 *)SDL_calloc(w * h, sizeof(Uint32));
+		if (pixels) {
+			for (int y = 0; y < h; ++y) {
+				/* Every other row gets a dark tint; every 3rd row even darker */
+				Uint8 alpha = 0;
+				if (y % 2 == 0) {
+					alpha = 60;  /* Main scanline */
+				}
+				if (y % 6 == 0) {
+					alpha = 30;  /* Lighter sub-line for CRT phosphor feel */
+				}
+				Uint32 pixel = ((Uint32)alpha << 24); /* Black with alpha */
+				for (int x = 0; x < w; ++x) {
+					pixels[y * w + x] = pixel;
+				}
+			}
+			m_scanlineTex = SDL_CreateTexture(m_renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STATIC, w, h);
+			if (m_scanlineTex) {
+				SDL_UpdateTexture(m_scanlineTex, NULL, pixels, w * sizeof(Uint32));
+				SDL_SetTextureBlendMode(m_scanlineTex, SDL_BLENDMODE_BLEND);
+			}
+			SDL_free(pixels);
+		}
+	}
+
+	/* Vignette overlay: radial darkening from center to edges */
+	{
+		int w = m_width;
+		int h = m_height;
+		Uint32 *pixels = (Uint32 *)SDL_calloc(w * h, sizeof(Uint32));
+		if (pixels) {
+			float cx = w * 0.5f;
+			float cy = h * 0.5f;
+			float maxDist = sqrtf(cx * cx + cy * cy);
+			for (int y = 0; y < h; ++y) {
+				for (int x = 0; x < w; ++x) {
+					float dx = (x - cx) / cx;
+					float dy = (y - cy) / cy;
+					float dist = sqrtf(dx * dx + dy * dy);
+					/* Smooth falloff: starts dim at 0.4 radius, full dark at edges */
+					float v = (dist - 0.4f) / 0.6f;
+					if (v < 0.0f) v = 0.0f;
+					if (v > 1.0f) v = 1.0f;
+					v = v * v; /* Quadratic falloff for smoother transition */
+					Uint8 alpha = (Uint8)(v * 255.0f);
+					pixels[y * w + x] = ((Uint32)alpha << 24); /* Black with alpha */
+				}
+			}
+			m_vignetteTex = SDL_CreateTexture(m_renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STATIC, w, h);
+			if (m_vignetteTex) {
+				SDL_UpdateTexture(m_vignetteTex, NULL, pixels, w * sizeof(Uint32));
+				SDL_SetTextureBlendMode(m_vignetteTex, SDL_BLENDMODE_BLEND);
+			}
+			SDL_free(pixels);
+		}
+	}
+}
+
+void
+FrameBuf::Shake(float intensity)
+{
+	if (intensity > m_shakeIntensity) {
+		m_shakeIntensity = intensity;
+	}
+}
+
+void
 FrameBuf::Update(void)
 {
 	if (m_target) {
@@ -226,7 +328,104 @@ FrameBuf::Update(void)
 		SDL_SetRenderDrawColor(m_renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
 		SDL_RenderClear(m_renderer);
 
-		SDL_RenderTexture(m_renderer, m_target, NULL, NULL);
+		/* Apply screen shake offset */
+		float shakeX = 0.0f, shakeY = 0.0f;
+		if (m_shakeIntensity > 0.5f) {
+			shakeX = ((float)(rand() % 200 - 100) / 100.0f) * m_shakeIntensity;
+			shakeY = ((float)(rand() % 200 - 100) / 100.0f) * m_shakeIntensity;
+			m_shakeIntensity *= m_shakeDecay;
+			if (m_shakeIntensity < 0.5f) {
+				m_shakeIntensity = 0.0f;
+			}
+		}
+
+		/* Base destination rect (with shake offset) */
+		SDL_FRect sceneDst;
+		sceneDst.x = shakeX;
+		sceneDst.y = shakeY;
+		sceneDst.w = (float)m_width;
+		sceneDst.h = (float)m_height;
+
+		/* Render the main scene — chromatic aberration or normal */
+		if (m_chromaEnabled && m_chromaOffset > 0.0f) {
+			/* Chromatic aberration: split RGB channels with slight offsets */
+			float off = m_chromaOffset;
+			SDL_SetTextureBlendMode(m_target, SDL_BLENDMODE_ADD);
+
+			/* Red channel — shifted left */
+			SDL_SetTextureColorMod(m_target, 255, 0, 0);
+			SDL_FRect rDst = sceneDst;
+			rDst.x -= off;
+			SDL_RenderTexture(m_renderer, m_target, NULL, &rDst);
+
+			/* Green channel — centered */
+			SDL_SetTextureColorMod(m_target, 0, 255, 0);
+			SDL_RenderTexture(m_renderer, m_target, NULL, &sceneDst);
+
+			/* Blue channel — shifted right */
+			SDL_SetTextureColorMod(m_target, 0, 0, 255);
+			SDL_FRect bDst = sceneDst;
+			bDst.x += off;
+			SDL_RenderTexture(m_renderer, m_target, NULL, &bDst);
+
+			/* Restore color mod */
+			SDL_SetTextureColorMod(m_target, 255, 255, 255);
+			SDL_SetTextureBlendMode(m_target, SDL_BLENDMODE_NONE);
+		} else {
+			SDL_RenderTexture(m_renderer, m_target, NULL, &sceneDst);
+		}
+
+		/* Bloom post-process: downsample then composite back with additive blending */
+		if (m_bloomEnabled && m_bloomHalf && m_bloomQuarter) {
+			/* Step 1: Downsample m_target -> m_bloomHalf (bilinear filtering blurs) */
+			SDL_SetRenderTarget(m_renderer, m_bloomHalf);
+			SDL_SetRenderDrawColor(m_renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
+			SDL_RenderClear(m_renderer);
+			SDL_SetTextureBlendMode(m_target, SDL_BLENDMODE_NONE);
+			SDL_RenderTexture(m_renderer, m_target, NULL, NULL);
+
+			/* Step 2: Downsample m_bloomHalf -> m_bloomQuarter (more blur) */
+			SDL_SetRenderTarget(m_renderer, m_bloomQuarter);
+			SDL_SetRenderDrawColor(m_renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
+			SDL_RenderClear(m_renderer);
+			SDL_SetTextureBlendMode(m_bloomHalf, SDL_BLENDMODE_NONE);
+			SDL_RenderTexture(m_renderer, m_bloomHalf, NULL, NULL);
+
+			/* Step 3: Composite bloom layers back to screen with additive blending */
+			SDL_SetRenderTarget(m_renderer, NULL);
+
+			/* Quarter-res bloom (widest spread, softest glow) */
+			Uint8 quarterAlpha = (Uint8)(m_bloomIntensity * 180.0f);
+			SDL_SetTextureBlendMode(m_bloomQuarter, SDL_BLENDMODE_ADD);
+			SDL_SetTextureAlphaMod(m_bloomQuarter, quarterAlpha);
+			SDL_RenderTexture(m_renderer, m_bloomQuarter, NULL, &sceneDst);
+
+			/* Half-res bloom (tighter glow) */
+			Uint8 halfAlpha = (Uint8)(m_bloomIntensity * 100.0f);
+			SDL_SetTextureBlendMode(m_bloomHalf, SDL_BLENDMODE_ADD);
+			SDL_SetTextureAlphaMod(m_bloomHalf, halfAlpha);
+			SDL_RenderTexture(m_renderer, m_bloomHalf, NULL, &sceneDst);
+
+			/* Restore blend modes */
+			SDL_SetTextureBlendMode(m_target, SDL_BLENDMODE_NONE);
+			SDL_SetTextureAlphaMod(m_bloomQuarter, 0xFF);
+			SDL_SetTextureAlphaMod(m_bloomHalf, 0xFF);
+		}
+
+		/* CRT scanline overlay */
+		if (m_scanlinesEnabled && m_scanlineTex) {
+			SDL_SetTextureAlphaMod(m_scanlineTex, (Uint8)(m_scanlineOpacity * 255.0f));
+			SDL_RenderTexture(m_renderer, m_scanlineTex, NULL, &sceneDst);
+			SDL_SetTextureAlphaMod(m_scanlineTex, 0xFF);
+		}
+
+		/* Vignette overlay */
+		if (m_vignetteEnabled && m_vignetteTex) {
+			SDL_SetTextureAlphaMod(m_vignetteTex, (Uint8)(m_vignetteStrength * 255.0f));
+			SDL_RenderTexture(m_renderer, m_vignetteTex, NULL, &sceneDst);
+			SDL_SetTextureAlphaMod(m_vignetteTex, 0xFF);
+		}
+
 		SDL_RenderPresent(m_renderer);
 
 		SDL_SetRenderTarget(m_renderer, m_target);

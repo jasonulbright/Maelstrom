@@ -120,6 +120,15 @@ public:
 	void StretchBlit(const SDL_Rect *dstrect, SDL_Texture *src, const SDL_Rect *srcrect);
 
 	void Update(void);
+	void SetBloom(bool enabled) { m_bloomEnabled = enabled; }
+	void SetBloomIntensity(float intensity) { m_bloomIntensity = intensity; }
+	void SetScanlines(bool enabled) { m_scanlinesEnabled = enabled; }
+	void SetScanlineOpacity(float opacity) { m_scanlineOpacity = opacity; }
+	void SetChromaticAberration(bool enabled) { m_chromaEnabled = enabled; }
+	void SetChromaticOffset(float offset) { m_chromaOffset = offset; }
+	void SetVignette(bool enabled) { m_vignetteEnabled = enabled; }
+	void SetVignetteStrength(float strength) { m_vignetteStrength = strength; }
+	void Shake(float intensity);
 	void FadeOut(void) {
 		if (!m_faded) {
 			Fade();
@@ -205,6 +214,32 @@ private:
 	SDL_FRect m_clip;
 	int m_width;
 	int m_height;
+
+	/* Bloom post-process */
+	bool m_bloomEnabled = true;
+	float m_bloomIntensity = 0.7f;
+	SDL_Texture *m_bloomHalf = nullptr;
+	SDL_Texture *m_bloomQuarter = nullptr;
+
+	/* Screen shake */
+	float m_shakeIntensity = 0.0f;
+	float m_shakeDecay = 0.85f;
+
+	/* CRT scanline overlay */
+	bool m_scanlinesEnabled = true;
+	float m_scanlineOpacity = 0.18f;
+	SDL_Texture *m_scanlineTex = nullptr;
+
+	/* Chromatic aberration */
+	bool m_chromaEnabled = true;
+	float m_chromaOffset = 1.5f;
+
+	/* Vignette */
+	bool m_vignetteEnabled = true;
+	float m_vignetteStrength = 0.4f;
+	SDL_Texture *m_vignetteTex = nullptr;
+
+	void CreatePostProcessTextures();
 
 	void UpdateDrawColor(Uint32 color) {
 		Uint8 r, g, b;
