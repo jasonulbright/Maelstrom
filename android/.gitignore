@@ -1,0 +1,22 @@
+# Gradle
+.gradle/
+build/
+app/build/
+
+# IDE
+.idea/
+*.iml
+local.properties
+
+# NDK
+app/.cxx/
+app/libs/
+
+# Copied game assets (regenerated from root Data/)
+app/src/main/assets/Data/
+
+# Copied SDL Java sources (regenerated from external/SDL/)
+app/src/main/java/org/libsdl/
+
+# Launcher icons (generated from game icon)
+app/src/main/res/mipmap-*/

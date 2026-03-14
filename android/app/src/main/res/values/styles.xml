@@ -1,0 +1,5 @@
+<resources>
+    <!-- Fullscreen immersive theme for the game -->
+    <style name="AppTheme" parent="@android:style/Theme.NoTitleBar.Fullscreen">
+    </style>
+</resources>
