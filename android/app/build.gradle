@@ -5,7 +5,7 @@ plugins {
 android {
     namespace = "com.maelstrom.game"
     compileSdkVersion 35
-    ndkVersion = "28.2.13676358"
+    ndkVersion = "29.0.14206865"
     defaultConfig {
         applicationId "com.maelstrom.game"
         minSdkVersion 21
@@ -40,6 +40,7 @@ android {
         externalNativeBuild {
             cmake {
                 path 'jni/CMakeLists.txt'
+                version '4.1.2'
             }
         }
     }
