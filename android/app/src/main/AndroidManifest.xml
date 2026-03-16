@@ -34,6 +34,7 @@
         android:allowBackup="true"
         android:theme="@style/AppTheme"
         android:enableOnBackInvokedCallback="false"
+        android:extractNativeLibs="true"
         android:hardwareAccelerated="true" >
 
         <activity android:name="com.maelstrom.game.MaelstromActivity"

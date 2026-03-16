@@ -183,60 +183,99 @@
 		</Button>
 		-->
 
-		<!-- Instructions -->
-		<Button name="PlayButton" template="MenuButton" hotkey="P" text="P" action="play" clickSound="114">
+		<!-- Desktop keyboard menu -->
+		<Button condition="!MOBILE" name="PlayButton" template="MenuButton" hotkey="P" text="P" action="play" clickSound="114">
 			<Anchor anchorFrom="TOPLEFT" anchorTo="TOPRIGHT" anchor="vertical_divider" x="9" y="10"/>
 		</Button>
-		<Label template="SmallYellow" text=" Start playing Maelstrom">
+		<Label condition="!MOBILE" template="SmallYellow" text=" Start playing Maelstrom">
 			<Anchor anchorFrom="BOTTOMLEFT" anchorTo="TOPRIGHT" anchor="PlayButton" x="3" y="21"/>
 		</Label>
-		<Button name="MultiplayerButton" template="MenuButton" hotkey="M" text="M" action="multiplayer" clickSound="114">
+		<Button condition="!MOBILE" name="MultiplayerButton" template="MenuButton" hotkey="M" text="M" action="multiplayer" clickSound="114">
 			<Anchor anchorFrom="TOPLEFT" anchorTo="TOPLEFT" anchor="PlayButton" y="34"/>
 		</Button>
-		<Label template="SmallYellow" text=" Start a multiplayer game">
+		<Label condition="!MOBILE" template="SmallYellow" text=" Start a multiplayer game">
 			<Anchor anchorFrom="BOTTOMLEFT" anchorTo="TOPRIGHT" anchor="MultiplayerButton" x="3" y="21"/>
 		</Label>
-		<Button name="ControlsButton" template="MenuButton" hotkey="C" text="C" action="show_controls" clickSound="119">
+		<Button condition="!MOBILE" name="ControlsButton" template="MenuButton" hotkey="C" text="C" action="show_controls" clickSound="119">
 			<Anchor anchorFrom="TOPLEFT" anchorTo="TOPLEFT" anchor="MultiplayerButton" y="34"/>
 		</Button>
-		<Label template="SmallYellow" text=" Configure the game controls">
+		<Label condition="!MOBILE" template="SmallYellow" text=" Configure the game controls">
 			<Anchor anchorFrom="BOTTOMLEFT" anchorTo="TOPRIGHT" anchor="ControlsButton" x="3" y="21"/>
 		</Label>
-		<Button name="ZapButton" template="MenuButton" hotkey="Z" text="Z" action="show_zap" clickSound="107">
+		<Button condition="!MOBILE" name="ZapButton" template="MenuButton" hotkey="Z" text="Z" action="show_zap" clickSound="107">
 			<Anchor anchorFrom="TOPLEFT" anchorTo="TOPLEFT" anchor="ControlsButton" y="34"/>
 		</Button>
-		<Label template="SmallYellow" text=" Zap the high scores">
+		<Label condition="!MOBILE" template="SmallYellow" text=" Zap the high scores">
 			<Anchor anchorFrom="BOTTOMLEFT" anchorTo="TOPRIGHT" anchor="ZapButton" x="3" y="21"/>
 		</Label>
-		<Button name="AboutButton" template="MenuButton" hotkey="A" text="A" action="show_about_story" clickSound="122">
+		<Button condition="!MOBILE" name="AboutButton" template="MenuButton" hotkey="A" text="A" action="show_about_story" clickSound="122">
 			<Anchor anchorFrom="TOPLEFT" anchorTo="TOPLEFT" anchor="ZapButton" y="34"/>
 		</Button>
-		<Label template="SmallYellow" text=" About Maelstrom...">
+		<Label condition="!MOBILE" template="SmallYellow" text=" About Maelstrom...">
 			<Anchor anchorFrom="BOTTOMLEFT" anchorTo="TOPRIGHT" anchor="AboutButton" x="3" y="21"/>
 		</Label>
-		<!-- You can't explicitly quit the iOS app -->
-		<Button condition="!IOS" name="QuitButton" template="MenuButton" hotkey="Q" text="Q" action="quit" clickSound="106">
+		<Button condition="!MOBILE" name="QuitButton" template="MenuButton" hotkey="Q" text="Q" action="quit" clickSound="106">
 			<Anchor anchorFrom="TOPLEFT" anchorTo="TOPLEFT" anchor="AboutButton" y="34"/>
 		</Button>
-		<Label condition="!IOS" template="SmallYellow" text=" Quit Maelstrom">
+		<Label condition="!MOBILE" template="SmallYellow" text=" Quit Maelstrom">
 			<Anchor anchorFrom="BOTTOMLEFT" anchorTo="TOPRIGHT" anchor="QuitButton" x="3" y="21"/>
 		</Label>
-		<Button name="VolumeDownButton" template="MenuButton" hotkey="0" text="0" action="volume_down">
+		<Button condition="!MOBILE" name="VolumeDownButton" template="MenuButton" hotkey="0" text="0" action="volume_down">
 			<Anchor anchorFrom="TOPLEFT" anchorTo="TOPLEFT" anchor="AboutButton" y="68"/>
 		</Button>
-		<Label template="SmallYellow" text="-">
+		<Label condition="!MOBILE" template="SmallYellow" text="-">
 			<Anchor anchorFrom="BOTTOMLEFT" anchorTo="TOPRIGHT" anchor="VolumeDownButton" x="3" y="21"/>
 		</Label>
-		<Button name="VolumeUpButton" template="MenuButton" hotkey="8" text="8" action="volume_up">
+		<Button condition="!MOBILE" name="VolumeUpButton" template="MenuButton" hotkey="8" text="8" action="volume_up">
 			<Anchor anchorFrom="TOPLEFT" anchorTo="TOPLEFT" anchor="VolumeDownButton" x="40"/>
 		</Button>
-		<Label template="SmallYellow" text=" Set Sound Volume">
+		<Label condition="!MOBILE" template="SmallYellow" text=" Set Sound Volume">
 			<Anchor anchorFrom="BOTTOMLEFT" anchorTo="TOPRIGHT" anchor="VolumeUpButton" x="3" y="21"/>
 		</Label>
 
-		<!-- Hidden action buttons -->
-		<Button name="ToggleFullscreen" template="HotkeyOnly" hotkey="ALT-Return" action="toggle_fullscreen"/>
-		<Button name="Screenshot" template="HotkeyOnly" hotkey="F3" action="screenshot"/>
+		<!-- Mobile touch menu -->
+		<Label condition="MOBILE" name="MobilePlay" template="LargeYellow" text="Play" action="play" clickSound="114">
+			<Anchor anchorFrom="TOPLEFT" anchorTo="TOPRIGHT" anchor="vertical_divider" x="30" y="20"/>
+		</Label>
+		<Button condition="MOBILE" action="play" clickSound="114">
+			<Size w="180" h="28"/>
+			<Anchor anchorFrom="TOPLEFT" anchorTo="TOPRIGHT" anchor="vertical_divider" x="16" y="14"/>
+		</Button>
+		<Label condition="MOBILE" name="MobileMultiplayer" template="LargeYellow" text="Multiplayer" action="multiplayer" clickSound="114">
+			<Anchor anchorFrom="TOPLEFT" anchorTo="TOPLEFT" anchor="MobilePlay" y="44"/>
+		</Label>
+		<Button condition="MOBILE" action="multiplayer" clickSound="114">
+			<Size w="180" h="28"/>
+			<Anchor anchorFrom="TOPLEFT" anchorTo="TOPLEFT" anchor="MobilePlay" x="-14" y="38"/>
+		</Button>
+		<Label condition="MOBILE" name="MobileAbout" template="LargeYellow" text="About" action="show_about_story" clickSound="122">
+			<Anchor anchorFrom="TOPLEFT" anchorTo="TOPLEFT" anchor="MobileMultiplayer" y="44"/>
+		</Label>
+		<Button condition="MOBILE" action="show_about_story" clickSound="122">
+			<Size w="180" h="28"/>
+			<Anchor anchorFrom="TOPLEFT" anchorTo="TOPLEFT" anchor="MobileMultiplayer" x="-14" y="38"/>
+		</Button>
+		<Label condition="MOBILE" name="MobileVolLabel" template="SmallYellow" text="Volume">
+			<Anchor anchorFrom="TOPLEFT" anchorTo="TOPLEFT" anchor="MobileAbout" y="54"/>
+		</Label>
+		<Button condition="MOBILE" name="MobileVolDown" action="volume_down">
+			<Size w="36" h="28"/>
+			<Anchor anchorFrom="TOPLEFT" anchorTo="TOPLEFT" anchor="MobileVolLabel" x="-6" y="16"/>
+		</Button>
+		<Label condition="MOBILE" template="LargeWhite" text=" - ">
+			<Anchor anchorFrom="TOPLEFT" anchorTo="TOPLEFT" anchor="MobileVolDown" x="6" y="2"/>
+		</Label>
+		<Button condition="MOBILE" name="MobileVolUp" action="volume_up">
+			<Size w="36" h="28"/>
+			<Anchor anchorFrom="LEFT" anchorTo="RIGHT" anchor="MobileVolDown" x="8"/>
+		</Button>
+		<Label condition="MOBILE" template="LargeWhite" text=" + ">
+			<Anchor anchorFrom="TOPLEFT" anchorTo="TOPLEFT" anchor="MobileVolUp" x="6" y="2"/>
+		</Label>
+
+		<!-- Hidden action buttons (desktop only) -->
+		<Button condition="!MOBILE" name="ToggleFullscreen" template="HotkeyOnly" hotkey="ALT-Return" action="toggle_fullscreen"/>
+		<Button condition="!MOBILE" name="Screenshot" template="HotkeyOnly" hotkey="F3" action="screenshot"/>
 		<Button name="Cheat" template="HotkeyOnly" hotkey="L" action="cheat" clickSound="124"/>
 		<Button name="Special" template="HotkeyOnly" hotkey="X" action="show_dawn" clickSound="128"/>
 		<Button name="SetVolume0" template="HotkeyOnly" hotkey="0" action="setvolume0"/>
@@ -258,7 +297,7 @@
 		<Label template="SmallYellow" text="Port to SDL by Sam Lantinga">
 			<Anchor anchorFrom="CENTER" anchorTo="CENTER" anchor="image" y="52"/>
 		</Label>
-		<Label template="SmallWhite" text="©1992-4 Ambrosia Software, Inc.">
+		<Label template="SmallWhite" text="ï¿½1992-4 Ambrosia Software, Inc.">
 			<Anchor anchorFrom="BOTTOMLEFT" anchorTo="TOPLEFT" anchor="hdivider_right" x="9" y="-2"/>
 		</Label>
 		<Label name="version" fontName="Geneva" fontSize="9">
