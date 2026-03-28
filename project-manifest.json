@@ -3,5 +3,5 @@
   "Status": "experimental",
   "Category": "Games",
   "ValidationSchedule": "none",
-  "Notes": "C++ SDL3 port of classic Maelstrom. Android build scaffolding in progress. 4 unpushed commits."
+  "Notes": "C++ SDL3 port of classic Maelstrom. Android build scaffolding + touch controls + visual effects (4 unpushed commits). Experimental."
 }
