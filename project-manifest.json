@@ -1,0 +1,7 @@
+{
+  "ProjectType": "game",
+  "Status": "experimental",
+  "Category": "Games",
+  "ValidationSchedule": "none",
+  "Notes": "C++ SDL3 port of classic Maelstrom. Android build scaffolding in progress. 4 unpushed commits."
+}
