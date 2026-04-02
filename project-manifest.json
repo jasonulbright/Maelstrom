@@ -1,0 +1,8 @@
+{
+  "ProjectType": "game",
+  "Description": "C++ SDL3 port of classic Macintosh Maelstrom asteroids game",
+  "Status": "experimental",
+  "Category": "Games",
+  "ValidationSchedule": "none",
+  "Notes": "INFO: C++ SDL3 port of classic Maelstrom"
+}
